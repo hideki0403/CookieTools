@@ -1,0 +1,11 @@
+{
+	"Name": "CookieTools",
+	"ID": "CookieToolsJP",
+	"Author": "yukineko",
+	"Description": "単位の日本語化やゲームを終了できない不具合を修正できるmodです",
+	"ModVersion": 1,
+	"GameVersion": 2.031,
+	"Date": "05/09/2021",
+	"Dependencies": [],
+	"Disabled": 1
+}
