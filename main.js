@@ -1,104 +1,118 @@
-cookieTools = {
-    version: 'v1.1.0',
+var CookieTools = {
+    name: 'CookieTools',
+    version: 'v1.1.1',
     config: {
         formatlang: 0
     },
-    update: null
-}
+    update: null,
 
-Game.registerMod('CookieTools', {
-    init: () => {
+    init: function() {
         // アップデートの確認
-        checkUpdate()
-
-        // Game.UpdateMenuのフックを作成
-        var origin = Game.UpdateMenu
+        this.checkUpdate()
         
-        Game.UpdateMenu = () => {
-            origin.apply()
-            if (Game.onMenu !== 'prefs') return
-            
-            var menu = l('menu')
-            var element = document.createElement('div')
-            element.className = 'framed'
-            element.style = 'margin: 4px 48px;'
-            element.innerHTML = `
-            <div class="block" style="padding:0px;margin:8px 4px;">
-                <div class="subsection" style="padding:0px;">
-                    <div class="title">拡張設定</div>
-                        <div class="listing">
-                        ${Game.WriteButton('format', 'formatButton', '短縮表記 OFF', '短縮表記 ON', 'BeautifyAll();Game.RefreshStore();Game.upgradesToRebuild=1;',1)}
-                        <label>(巨大な数の表記を短縮します)</label><br>
-                        
-                        <a class="smallFancyButton option ${((cookieTools.config.formatlang > 0) ? '' : 'off')}" id="langButton" ${Game.clickStr}="langButton()">${cookieTools.config.formatlang > 0 ? '単位日本語化 形式' + cookieTools.config.formatlang : '単位日本語化 OFF'}</a>
-                        <label>(単位を日本語化します)</label><br>
-                        
-                        <a class="smallFancyButton option" id="resetWarn" ${Game.clickStr}="resetWarn()">セーブデータを修正</a>
-                        <label>(ゲームを閉じたりリロードしたり出来なくなる不具合の原因を修正します)</label><br>
+        // メニューのフックを作成
+        var origin = eval('Game.UpdateMenu.toString()').split('\n')
+    
+        origin.splice(origin.length - 1, 0, `
+            if(Game.onMenu == 'prefs'){
+                CookieTools.injectMenu()
+            }
+        `)
 
-                        <a class="smallFancyButton option" id="resetWarn" ${Game.clickStr}="checkUpdate(true)">アップデートを確認</a>
-                        <label>CookieToolsのアップデートを確認します</label><br>
-                    </div>
-                </div>
-                <div id="cookieToolsUpdate" class="subsection update small" style="${cookieTools.update ? '' : 'display: none;'}">
-                    <div class="title" style="color: #25B0F3">アップデートがあります</div>
-                    <div class="listing">
-                        <div style="margin: 5px 0px;">バージョン: ${cookieTools.update?.version}</div>
-                        <div style="margin: 5px 0px;">${cookieTools.update?.releaseNote}</div>
-                        <a class="option" ${Game.clickStr}="Steam.openLink('${cookieTools.update?.link}')" target="_brank">最新バージョンをダウンロードする</a>
-                        <a class="option" ${Game.clickStr}="send({id:'open folder',loc:'DIR/mods/local/CookieTools'})">CookieToolsフォルダを開く</a>
-                        <div style="margin: 5px 0px; color: #E5E101">ダウンロードしたzipの中身をCookieToolsフォルダの中へドラッグアンドドロップ→上書き保存をしてください</div>
-                    </div>
-                </div>
-                <p style="text-align: right; font-size: 12px; color: #999">CookieTools</p>
-            </div>
-            `
-            
-            menu.insertBefore(element, menu.lastChild)
+        eval(`Game.UpdateMenu = ${origin.join('\n')}`)
+    },
+
+    register: function() {
+        Game.registerMod(this.name, this)
+    },
+
+    save: function() {
+        return JSON.stringify(this.config)
+    },
+    
+    load: function(data) {
+        this.config = JSON.parse(data)
+    },
+
+    checkUpdate: async function (self = false) {
+        var res = await fetch("https://api.github.com/repos/hideki0403/CookieTools/releases/latest")
+        var json = await res.json()
+
+        if(json.message) {
+            if(self && json.message.match('API rate limit')) Game.Notify(this.name, 'アップデートの確認に失敗しました<br>時間を開けてからもう一度お試しください', '', true)
+            return
         }
+
+        if(json.tag_name === this.version) {
+            if(self) Game.Notify(this.name, 'アップデートはありませんでした', '', true)
+            return
+        }
+
+        this.update = {
+            version: json.tag_name,
+            releaseNote: json.body.replace(/\n/g, '<br>'),
+            link: json.assets[0].browser_download_url
+        }
+
+        Game.Notify(this.name, `<b style="color: #00DEFF">CookieToolsのアップデートがあります</b><br>詳しくはオプションの拡張設定をご確認ください`)
     },
+
+    injectMenu: function() {
+        var menu = l('menu')
+        var element = document.createElement('div')
+        element.className = 'framed'
+        element.style = 'margin: 4px 48px;'
+        element.innerHTML = `
+        <div class="block" style="padding:0px;margin:8px 4px;">
+            <div class="subsection" style="padding:0px;">
+                <div class="title">CookieTools</div>
+                    <div class="listing">
+                    ${Game.WriteButton('format', 'formatButton', '短縮表記 OFF', '短縮表記 ON', 'BeautifyAll();Game.RefreshStore();Game.upgradesToRebuild=1;',1)}
+                    <label>(巨大な数の表記を短縮します)</label><br>
+                    
+                    <a class="smallFancyButton option ${((this.config.formatlang > 0) ? '' : 'off')}" id="langButton" ${Game.clickStr}="CookieTools.langButton()">${this.config.formatlang > 0 ? '単位日本語化 形式' + this.config.formatlang : '単位日本語化 OFF'}</a>
+                    <label>(単位を日本語化します)</label><br>
+                    
+                    <a class="smallFancyButton option" id="resetWarn" ${Game.clickStr}="CookieTools.resetWarn()">セーブデータを修正</a>
+                    <label>(ゲームを閉じたりリロードしたり出来なくなる不具合の原因を修正します)</label><br>
     
-    save: () => {
-        return JSON.stringify(cookieTools.config)
+                    <a class="smallFancyButton option" id="resetWarn" ${Game.clickStr}="CookieTools.checkUpdate(true)">アップデートを確認</a>
+                    <label>CookieToolsのアップデートを確認します</label><br>
+                </div>
+            </div>
+            <div id="CookieToolsUpdate" class="subsection update small" style="${this.update ? '' : 'display: none;'}">
+                <div class="title" style="color: #25B0F3">アップデートがあります</div>
+                <div class="listing">
+                    <div style="margin: 5px 0px;">バージョン: ${this.update?.version}</div>
+                    <div style="margin: 15px 0px;">${this.update?.releaseNote}</div>
+                    <a class="option" ${Game.clickStr}="Steam.openLink('${this.update?.link}')" target="_brank">最新バージョンをダウンロードする</a>
+                    <a class="option" ${Game.clickStr}="send({id:'open folder',loc:'DIR/mods/local/CookieTools'})">CookieToolsフォルダを開く</a>
+                    <div style="margin: 15px 0px; color: #E5E101">ダウンロードしたzipの中身をCookieToolsフォルダの中へドラッグアンドドロップ→上書き保存をしてください</div>
+                    <a class="option" ${Game.clickStr}="Steam.openLink('https://steamcommunity.com/sharedfiles/filedetails/?id=2594282269')" target="_brank">アップデートガイド</a>
+                </div>
+            </div>
+            <p style="text-align: right; font-size: 12px; color: #999">${this.version}</p>
+        </div>
+        `
+        
+        menu.insertBefore(element, menu.lastChild)
     },
-    
-    load: (data) => {
-        cookieTools.config = JSON.parse(data)
+
+    resetWarn: function() {
+        Game.prefs.warn = 0
+        Game.WriteSave()
+        Game.Notify(this.name, 'セーブデータの修正が完了しました')
+    },
+
+    langButton: function() {
+        this.config.formatlang = (this.config.formatlang + 1) % 3
+        l('langButton').innerHTML= this.config.formatlang > 0 ? '単位日本語化 形式' + this.config.formatlang : '単位日本語化 OFF'
+        l('langButton').className = `smallFancyButton option ${(this.config.formatlang > 0 ? '' : 'off')}`
+        BeautifyAll()
+        Game.RefreshStore()
+        Game.upgradesToRebuild = 1
+        PlaySound('snd/tick.mp3')
     }
-})
-
-async function checkUpdate(self = false) {
-    var res = await fetch("https://api.github.com/repos/hideki0403/CookieTools/releases/latest")
-    var json = await res.json()
-
-    if(json.tag_name === cookieTools.version) {
-        if(self) Game.Notify('CookieTools', 'アップデートはありませんでした', '', true)
-        return
-    }
-
-    cookieTools.update = {
-        version: json.tag_name,
-        releaseNote: json.body.replace(/\n/g, '<br>'),
-        link: json.assets[0].browser_download_url
-    }
-
-    Game.Notify('CookieTools', `<b style="color: #00DEFF">CookieToolsのアップデートがあります</b><br>詳しくはオプションの拡張設定をご確認ください`)
-}
-
-function resetWarn() {
-    Game.prefs.warn = 0
-    Game.WriteSave()
-    Game.Notify('CookieTools', 'セーブデータの修正が完了しました')
-}
-
-function langButton() {
-    cookieTools.config.formatlang = (cookieTools.config.formatlang + 1) % 3
-    l('langButton').innerHTML= cookieTools.config.formatlang > 0 ? '単位日本語化 形式' + cookieTools.config.formatlang : '単位日本語化 OFF'
-    l('langButton').className = `smallFancyButton option ${(cookieTools.config.formatlang > 0 ? '' : 'off')}`
-    BeautifyAll()
-    Game.RefreshStore()
-    Game.upgradesToRebuild = 1
-    PlaySound('snd/tick.mp3')
 }
 
 function formatEveryFourthPower(notations) {
@@ -193,9 +207,9 @@ Beautify = (val,floats) => {
     if (Math.abs(val) < 1000 && floats > 0 && Math.floor(fixed) != fixed) decimal = '.' + (fixed.toString()).split('.')[1]
     val = Math.floor(Math.abs(val))
     if (floats > 0 && fixed == val + 1) val++
-    var formatter = numberFormatters[Game.prefs.format ? 2 : (cookieTools.config.formatlang > 0 ? 2 + cookieTools.config.formatlang : 1)]
+    var formatter = numberFormatters[Game.prefs.format ? 2 : (CookieTools.config.formatlang > 0 ? 2 + CookieTools.config.formatlang : 1)]
     var output = (val.toString().indexOf('e+') != -1 && Game.prefs.format == 1) ? val.toPrecision(3).toString() : formatter(val).toString()
-    if (Game.prefs.format || !cookieTools.config.formatlang) {
+    if (Game.prefs.format || !CookieTools.config.formatlang) {
         output = output.replace(/B(?=(d{3})+(?!d))/g, ',')
     } else {
         output = output.replace(/^(d)(d{3})/, '$1,$2')
@@ -203,3 +217,9 @@ Beautify = (val,floats) => {
     if (output=='0') negative = false
     return negative ? '-' + output : output + decimal
 }
+
+for (func of Object.getOwnPropertyNames(CookieTools).filter(m => typeof CookieTools[m] === 'function')) {
+    CookieTools[func] = CookieTools[func].bind(CookieTools)
+}
+
+CookieTools.register()
