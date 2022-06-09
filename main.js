@@ -72,9 +72,6 @@ var CookieTools = {
                     
                     <a class="smallFancyButton option ${((this.config.formatlang > 0) ? '' : 'off')}" id="langButton" ${Game.clickStr}="CookieTools.langButton()">${this.config.formatlang > 0 ? '単位日本語化 形式' + this.config.formatlang : '単位日本語化 OFF'}</a>
                     <label>(単位を日本語化します)</label><br>
-                    
-                    <a class="smallFancyButton option" id="resetWarn" ${Game.clickStr}="CookieTools.resetWarn()">セーブデータを修正</a>
-                    <label>(ゲームを閉じたりリロードしたり出来なくなる不具合の原因を修正します)</label><br>
     
                     <a class="smallFancyButton option" id="resetWarn" ${Game.clickStr}="CookieTools.checkUpdate(true)">アップデートを確認</a>
                     <label>CookieToolsのアップデートを確認します</label><br>
@@ -96,12 +93,6 @@ var CookieTools = {
         `
         
         menu.insertBefore(element, menu.lastChild)
-    },
-
-    resetWarn: function() {
-        Game.prefs.warn = 0
-        Game.WriteSave()
-        Game.Notify(this.name, 'セーブデータの修正が完了しました')
     },
 
     langButton: function() {
