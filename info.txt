@@ -5,7 +5,7 @@
     "Description": "単位の日本語化やゲームを終了できない不具合を修正できるmodです",
     "ModVersion": 1,
     "GameVersion": 2.048,
-    "Date": "06/07/2022",
+    "Date": "10/06/2022",
     "Dependencies": [],
     "Disabled": 0,
     "AllowSteamAchievs":1

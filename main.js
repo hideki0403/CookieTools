@@ -1,6 +1,6 @@
 var CookieTools = {
     name: 'CookieTools',
-    version: 'v1.1.2',
+    version: 'v1.1.3',
     config: {
         formatlang: 0
     },
