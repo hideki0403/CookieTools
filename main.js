@@ -70,9 +70,9 @@ var CookieTools = {
                     ${Game.WritePrefButton('format', 'formatButton', '短縮表記 OFF', '短縮表記 ON', 'BeautifyAll();Game.RefreshStore();Game.upgradesToRebuild=1;',1)}
                     <label>(巨大な数の表記を短縮します)</label><br>
                     
-                    <a class="smallFancyButton option ${((this.config.formatlang > 0) ? '' : 'off')}" id="langButton" ${Game.clickStr}="CookieTools.langButton()">${this.config.formatlang > 0 ? '単位日本語化 形式' + this.config.formatlang : '単位日本語化 OFF'}</a>
+                    <a class="smallFancyButton prefButton option ${((this.config.formatlang > 0) ? 'on' : 'off')}" id="langButton" ${Game.clickStr}="CookieTools.langButton()">${this.config.formatlang > 0 ? '単位日本語化 形式' + this.config.formatlang : '単位日本語化 OFF'}</a><label>(単位を日本語化します)</label><br>
                     <label>(単位を日本語化します)</label><br>
-    
+
                     <a class="smallFancyButton option" id="resetWarn" ${Game.clickStr}="CookieTools.checkUpdate(true)">アップデートを確認</a>
                     <label>CookieToolsのアップデートを確認します</label><br>
                 </div>
@@ -98,7 +98,7 @@ var CookieTools = {
     langButton: function() {
         this.config.formatlang = (this.config.formatlang + 1) % 3
         l('langButton').innerHTML= this.config.formatlang > 0 ? '単位日本語化 形式' + this.config.formatlang : '単位日本語化 OFF'
-        l('langButton').className = `smallFancyButton option ${(this.config.formatlang > 0 ? '' : 'off')}`
+        l('langButton').className = `smallFancyButton option ${(this.config.formatlang > 0 ? 'on' : 'off')}`
         BeautifyAll()
         Game.RefreshStore()
         Game.upgradesToRebuild = 1
